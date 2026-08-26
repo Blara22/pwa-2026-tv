@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <!-- 1. META VIEWPORT: Obliga al navegador móvil a usar el ancho real de la pantalla -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejemplo — Diseño Responsivo</title>
+  
+  <link rel="stylesheet" href="styles.css">
+  
+</head>
+<body>
+
+  <!-- HUD en vivo para depuración -->
+  <div class="viewport-hud">Ancho: <span id="vp-width">0</span>px (<span id="vp-device">Móvil</span>)</div>
+
+  <!-- Header / Shell -->
+  <header class="app-header">
+    <div class="app-title">App Responsiva Demo</div>
+    <nav class="app-nav">
+      <a href="#grid" class="active">Grid Mobile First</a>
+      <a href="#flex">Flexbox Auto</a>
+      <a href="#images">Srcset</a>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- BLOQUE 1: CSS Grid Mobile First -->
+    <section class="demo-section" id="grid">
+      <h2 class="section-title">1. Grid Responsivo (Mobile First)</h2>
+      <p class="section-desc">
+        1 columna por defecto en móviles. Se expande a 2 columnas en Tablet (≥640px) y 3 en Desktop (≥1024px) usando <code>min-width</code>.
+      </p>
+
+      <div class="grid-mobile-first">
+        <article class="card">
+          <div class="card-body">
+            <span class="card-tag">Mobile First</span>
+            <h3 class="card-title">Tarjeta 1</h3>
+            <p class="card-text">Base simple en móvil sin sobreescribir estilos pesados.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-body">
+            <span class="card-tag">Progressive</span>
+            <h3 class="card-title">Tarjeta 2</h3>
+            <p class="card-text">Añade complejidad conforme crece la pantalla.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-body">
+            <span class="card-tag">CSS Grid</span>
+            <h3 class="card-title">Tarjeta 3</h3>
+            <p class="card-text">Pasa de 1 a 2 y luego a 3 columnas automáticamente.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- BLOQUE 2: Flexbox Auto Wrap sin Media Queries -->
+    <section class="demo-section" id="flex">
+      <h2 class="section-title">2. Flexbox Responsivo Fluido</h2>
+      <p class="section-desc">
+        Usa <code>flex: 1 1 250px</code>. No requiere escribir media queries; se adapta sólo al espacio disponible.
+      </p>
+
+      <div class="flex-responsive">
+        <div class="flex-card">
+          <span class="card-tag">Base 250px</span>
+          <h3 class="card-title" style="margin-top:0.5rem;">Bloque Flex 1</h3>
+          <p class="card-text">Crece y se encoge dinámicamente.</p>
+        </div>
+
+        <div class="flex-card">
+          <span class="card-tag">Auto Wrap</span>
+          <h3 class="card-title" style="margin-top:0.5rem;">Bloque Flex 2</h3>
+          <p class="card-text">Salta de línea automáticamente cuando no cabe.</p>
+        </div>
+
+        <div class="flex-card">
+          <span class="card-tag">Sin Queries</span>
+          <h3 class="card-title" style="margin-top:0.5rem;">Bloque Flex 3</h3>
+          <p class="card-text">Ideal para listas de tarjetas dinámicas.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOQUE 3: Imágenes Responsivas con Srcset y Sizes -->
+    <section class="demo-section" id="images">
+      <h2 class="section-title">3. Imágenes Responsivas (srcset & sizes)</h2>
+      <p class="section-desc">
+        El navegador escoge automáticamente la imagen óptima reduciendo la descarga de datos en dispositivos móviles.
+      </p>
+
+      <div class="grid-mobile-first">
+        <article class="card">
+          <!-- Imagen responsiva con Placeholders según pantalla -->
+          <img 
+            class="responsive-img"
+            src="https://placehold.co/800x450"
+            srcset="
+              https://placehold.co/400x225 400w,
+              https://placehold.co/800x450 800w,
+              https://placehold.co/1200x675 1200w"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            alt="Demo Srcset"
+            loading="lazy"
+          />
+          <div class="card-body">
+            <span class="card-tag">srcset + sizes</span>
+            <h3 class="card-title">Carga Adaptativa</h3>
+            <p class="card-text">Cambia el tamaño del navegador para ver qué versión selecciona el motor de renderizado.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Script indicador de ancho -->
+  <script>
+    function updateHUD() {
+      const w = window.innerWidth;
+      document.getElementById('vp-width').textContent = w;
+      const dev = document.getElementById('vp-device');
+      if (w < 640) {
+        dev.textContent = 'Móvil (< 640px)';
+        dev.style.color = '#38bdf8';
+      } else if (w >= 640 && w < 1024) {
+        dev.textContent = 'Tablet (640px - 1023px)';
+        dev.style.color = '#818cf8';
+      } else {
+        dev.textContent = 'Desktop (≥ 1024px)';
+        dev.style.color = '#4ade80';
+      }
+    }
+    window.addEventListener('resize', updateHUD);
+    window.addEventListener('DOMContentLoaded', updateHUD);
+  </script>
+</body>
+</html>

@@ -4,12 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demo SPA - Módulos ES6 + History API</title>
+  
+  <!-- Carga prioritaria de los estilos del Shell -->
+  <link rel="stylesheet" href="styles/shell.css" />
+  <!-- Estilos del contenido dinámico -->
   <link rel="stylesheet" href="styles/main.css" />
 </head>
 <body>
+  
+  <!-- App Shell: Header y Navegación Fijos -->
   <header>
     <h1>Demo SPA</h1>
-    <!-- data-link es la marca que usaremos para interceptar los clics -->
     <nav>
       <a href="/" data-link>Inicio</a>
       <a href="/acerca" data-link>Acerca de</a>
@@ -18,14 +23,22 @@
     </nav>
   </header>
 
-  <!-- El router siempre renderiza dentro de este contenedor -->
-  <main id="app">Cargando...</main>
+  <!-- App Shell Container: Inyección de Vistas -->
+  <main id="app">
+    <!-- Skeleton inicial: Se muestra mientras la primera vista resuelve sus recursos -->
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line short"></div>
+    </div>
+  </main>
 
+  <!-- App Shell: Footer Fijo -->
   <footer>
     <p>La URL cambia, pero el documento nunca se recarga. Observa la pestaña Network.</p>
   </footer>
 
-  <!-- type="module" habilita import/export en este archivo y en los que importe -->
   <script type="module" src="src/main.js"></script>
 </body>
 </html>
