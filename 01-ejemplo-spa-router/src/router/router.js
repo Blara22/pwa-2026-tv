@@ -1,4 +1,5 @@
 import renderActiveLink from "../components/NavBar.js";
+import { BASE_PATH } from "../config.js";
 
 /** Función auxiliar para simular tiempo de espera / latencia de red */
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -36,7 +37,8 @@ export default class Router {
   }
 
   async render() {
-    const path = window.location.pathname;
+    const fullPath = window.location.pathname;
+    const path = fullPath.replace(BASE_PATH, "") || "/";
 
     // 1. Inyectamos de inmediato el Skeleton en el Shell antes de resolver la vista
     this.root.innerHTML = this.getSkeletonHTML();

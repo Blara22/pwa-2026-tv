@@ -1,0 +1,1 @@
+export const BASE_PATH = "/pwa-2026-tv/01-ejemplo-spa-router/";

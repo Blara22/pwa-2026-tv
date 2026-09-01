@@ -3,16 +3,17 @@ import HomeView from "./views/HomeView.js";
 import AboutView from "./views/AboutView.js";
 import ContactView from "./views/ContactView.js";
 
-// Definimos el "mapa de rutas" de la aplicación. Nota que HomeView y
-// AboutView se importaron de forma ESTÁTICA arriba (se descargan siempre,
-// al inicio), mientras que ContactView, adentro de su propio archivo, hace
-// un import DINÁMICO de ApiService (se descarga solo cuando se necesita).
+// Definimos el "mapa de rutas" de la aplicación. Por ahora las tres vistas
+// se importan de forma ESTÁTICA (se descargan siempre, al inicio).
 const routes = [
   { path: "/", view: HomeView },
   { path: "/acerca", view: AboutView },
   { path: "/contacto", view: ContactView },
 ];
 
+
+// El shell (header, nav, footer) ya está en el HTML y no vuelve a tocarse.
+// El router SOLO controla lo que ocurre dentro de #app-root: eso es el contenido.
 const app = document.getElementById("app");
 const router = new Router(routes, app);
 
