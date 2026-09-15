@@ -2,6 +2,7 @@ import Router from "./router/router.js";
 import HomeView from "./views/HomeView.js";
 import AboutView from "./views/AboutView.js";
 import ContactView from "./views/ContactView.js";
+import StorageView from "./views/StorageView.js";
 
 // Definimos el "mapa de rutas" de la aplicación. Por ahora las tres vistas
 // se importan de forma ESTÁTICA (se descargan siempre, al inicio).
@@ -9,6 +10,7 @@ const routes = [
   { path: "/", view: HomeView },
   { path: "/acerca", view: AboutView },
   { path: "/contacto", view: ContactView },
+  { path: "/almacenamiento", view: StorageView },
 ];
 
 
