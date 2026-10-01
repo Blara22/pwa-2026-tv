@@ -1,5 +1,5 @@
 import { BASE_PATH } from "../config.js";
-import { SW_URL, SW_SCOPE } from "../pwa/registerSW.js";
+import { SW_URL, SW_SCOPE, activateWaitingSW } from "../pwa/registerSW.js";
 
 const PARENT_SCOPE = BASE_PATH.slice(0, BASE_PATH.lastIndexOf("/") + 1);
 
@@ -29,7 +29,11 @@ async function getStatus() {
     scope: registration?.scope ?? null,
     scriptURL: worker?.scriptURL ?? null,
     state: worker?.state ?? null,
-    controlled: Boolean(navigator.serviceWorker.controller)
+    controlled: Boolean(navigator.serviceWorker.controller),
+    installing: Boolean(registration?.installing),
+    waiting: Boolean(registration?.waiting),
+    active: Boolean(registration?.active),
+    registration
   };
 }
 
@@ -88,14 +92,75 @@ function renderScopeTable(scope) {
   `;
 }
 
+async function getCacheInfo() {
+  if (!("caches" in window)) return [];
+
+  const names = await caches.keys();
+  return Promise.all(
+    names.map(async (name) => {
+      const cache = await caches.open(name);
+      const keys = await cache.keys();
+      return { name, count: keys.length, urls: keys.map((req) => req.url) };
+    })
+  );
+}
+
+function renderLifecycle(status) {
+  const slot = (label, present) => `
+    <div class="sw-slot ${present ? "sw-slot-on" : ""}">
+      <strong>${label}</strong>
+      <span>${present ? yes("presente") : "—"}</span>
+    </div>
+  `;
+
+  return `
+    <div class="sw-lifecycle">
+      ${slot("installing", status.installing)}
+      ${slot("waiting", status.waiting)}
+      ${slot("active", status.active)}
+    </div>
+  `;
+}
+
+function renderCacheTable(caches) {
+  if (caches.length === 0) {
+    return `<p>No hay ninguna caché todavía.</p>`;
+  }
+
+  const rows = caches
+    .map(
+      ({ name, count, urls }) => `
+        <tr>
+          <td><code>${name}</code></td>
+          <td>${count}</td>
+          <td><small>${urls.map((u) => u.replace(window.location.origin, "")).join("<br>")}</small></td>
+        </tr>
+      `
+    )
+    .join("");
+
+  return `
+    <table class="storage-table">
+      <thead>
+        <tr><th>Caché</th><th># recursos</th><th>Contenido</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
 async function updatePanels() {
   const statusBox = document.getElementById("sw-status");
   const scopeBox = document.getElementById("sw-scope-table");
+  const lifecycleBox = document.getElementById("sw-lifecycle-box");
+  const cacheBox = document.getElementById("sw-cache-table");
   if (!statusBox || !scopeBox) return;
 
   const status = await getStatus();
   statusBox.innerHTML = renderStatus(status);
   scopeBox.innerHTML = renderScopeTable(status.scope);
+  if (lifecycleBox) lifecycleBox.innerHTML = renderLifecycle(status);
+  if (cacheBox) cacheBox.innerHTML = renderCacheTable(await getCacheInfo());
 }
 
 function showResult(message) {
@@ -140,38 +205,65 @@ document.addEventListener("click", async (event) => {
   if (action === "refresh") await updatePanels();
   else if (action === "wide-scope") await tryWideScope();
   else if (action === "unregister") await unregisterServiceWorker();
+  else if (action === "activate-update") {
+    activateWaitingSW(pendingRegistration);
+    document.getElementById("sw-update-banner")?.setAttribute("hidden", "");
+  }
+});
+
+let pendingRegistration = null;
+
+function showUpdateBanner(registration) {
+  pendingRegistration = registration;
+  const banner = document.getElementById("sw-update-banner");
+  if (banner) banner.hidden = false;
+}
+
+window.addEventListener("sw-update-available", (event) => {
+  showUpdateBanner(event.detail.registration);
 });
 
 export default async function ServiceWorkerView() {
   const status = await getStatus();
+  const cacheInfo = await getCacheInfo();
+
+  if (status.waiting && status.registration) {
+    pendingRegistration = status.registration;
+  }
+
+  const isPending = Boolean(status.waiting || pendingRegistration);
 
   return `
+    <!-- Control reactivo del atributo hidden -->
+    <div id="sw-update-banner" class="sw-update-banner" ${isPending ? "" : "hidden"}>
+      <span>Hay una nueva versión de la app instalada y en espera.</span>
+      <button type="button" data-sw-action="activate-update">Actualizar ahora</button>
+    </div>
+
     <div class="card">
       <h2>Service Worker</h2>
-      <p>Panel de diagnóstico. Compáralo con DevTools →
-      <strong>Application → Service Workers</strong>.</p>
+      <p>Panel de diagnóstico. Compáralo con DevTools → <strong>Application → Service Workers</strong>.</p>
       <div id="sw-status">${renderStatus(status)}</div>
       <div class="storage-actions">
         <button type="button" data-sw-action="refresh">Actualizar estado</button>
+        <button type="button" data-sw-action="check-update" class="btn-secundario">Buscar actualización</button>
         <button type="button" data-sw-action="unregister" class="btn-secundario">Dar de baja el SW</button>
       </div>
     </div>
 
     <div class="card">
-      <h3>Verificador de scope</h3>
-      <p>Una página queda bajo el control del SW solo si su URL
-      <strong>empieza</strong> con el scope.</p>
-      <div id="sw-scope-table">${renderScopeTable(status.scope)}</div>
+      <h3>Ciclo de vida (Clase 2)</h3>
+      <div id="sw-lifecycle-box">${renderLifecycle(status)}</div>
     </div>
 
     <div class="card">
-      <h3>Demo: scope inválido</h3>
-      <p>Intentamos registrar el mismo <code>sw.js</code> pidiendo como scope
-      <code>${PARENT_SCOPE}</code>, una carpeta por encima de donde vive el archivo.</p>
-      <div class="storage-actions">
-        <button type="button" data-sw-action="wide-scope">Probar scope más amplio</button>
-      </div>
-      <p id="sw-result" class="sw-result"></p>
+      <h3>Cache Storage (Clase 2)</h3>
+      <div id="sw-cache-table">${renderCacheTable(cacheInfo)}</div>
+    </div>
+
+    <div class="card">
+      <h3>Verificador de scope</h3>
+      <div id="sw-scope-table">${renderScopeTable(status.scope)}</div>
     </div>
   `;
 }
