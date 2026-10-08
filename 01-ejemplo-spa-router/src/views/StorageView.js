@@ -18,30 +18,30 @@ function updateScreenValues() {
   document.getElementById("cookie-value").textContent = status.cookie ?? "(vacío)";
   document.getElementById("session-value").textContent = status.session ?? "(vacío)";
   document.getElementById("local-value").textContent = status.local ?? "(vacío)";
-
 }
 
-document.addEventListener("click", (event) => {
-  const boton = event.target.closest("[data-storage-action]")
+document.addEventListener("click", (event) =>  {
+  const boton = event.target.closest("[data-storage-action");
+  console.log(boton);
   if(!boton) return;
 
-  const action = boton.dataset.storageAction;
-  const type = boton.dataset.storageType;
+  const action = boton.dataset.storageAction; // "save" | "delete"
+  const type = boton.dataset.storageType; //"cookie"  | "session" | "local"
 
   if(action === 'save') {
     saveInStorage(type);
-  }else {
+  } else {
     deleteFromStorage(type);
   }
-});
+})
 
 function deleteFromStorage(type) {
-  if(type === 'cookie') deleteCookie(COOKIE_KEY);
-  else if(type === 'session') sessionStorage.removeItem(SESSION_KEY);
-  else if(type === 'local') localStorage.removeItem(LOCAL_KEY);
+  if(type === 'cookie') deleteCookie(COOKIE_KEY)
+  else if (type === 'session') sessionStorage.removeItem(SESSION_KEY)
+  else if(type === 'local') localStorage.removeItem(LOCAL_KEY)
 
   updateScreenValues();
-}
+}  
 
 function saveInStorage(type) {
   const input = document.getElementById(`input-${type}`);
@@ -55,14 +55,14 @@ function saveInStorage(type) {
       alert("El navegador tiene las cookies bloqueadas para este sitio. Este valor no se guardó.");
       return;
     }
-  }else {
+  } else {
     const storage = type === 'session' ? sessionStorage : localStorage;
     const key = type === 'session' ? SESSION_KEY : LOCAL_KEY;
 
     try {
       storage.setItem(key, value);
     }catch(error) {
-      console.error(`No se pudo guardar en ${type}Storage: `, error);
+      console.error(`No se pudo guardar en ${type}Storage:`, error);
       alert(storageErrorMessage(error));
       return;
     }
@@ -70,20 +70,21 @@ function saveInStorage(type) {
 
   input.value = "";
   updateScreenValues();
+
 }
 
 function storageErrorMessage(error) {
   const isQuotaExceeded = error instanceof DOMException && (error.name === "QuotaExceededError");
 
   if(isQuotaExceeded) {
-    return "Se llenó el espacio disponible para guardar datos en este sitio.";
+    return "Se llenó el espacio disponible para guardar datos en este sitio";
   }
 
   if(error.name === "SecurityError") {
-    return "El navegador tiene bloqueado el almacenamiento";
+    return "El navegador tiene bloqueado el almacenamiento.";
   }
 
-  return "No se pudo guardar el dato en el almacenamiento del navegador";
+  return "No se pudo guardar el dato en el almacenamiento del navegador.";
 }
 
 export default function StorageView() {

@@ -1,7 +1,7 @@
 {
   "actualizado": "v2",
   "productos": [
-    { "id": 1, "nombre": "Café de olla", "precio": 55 },
+    { "id": 1, "nombre": "Café de olla", "precio": 58 },
     { "id": 2, "nombre": "Pan dulce", "precio": 20 },
     { "id": 3, "nombre": "Agua de jamaica", "precio": 25 }
   ]

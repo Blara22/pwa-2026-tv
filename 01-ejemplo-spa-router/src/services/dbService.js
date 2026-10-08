@@ -6,16 +6,16 @@ const STORE_NAME = "notes";
 
 const dbPromise = openDB(DB_NAME, DB_VERSION, {
   upgrade(db) {
-    if(!db.objectStoreNames.contains(STORE_NAME)){
-      const store =  db.createObjectStore(STORE_NAME, {
-        keyPath: "id",
+    if(!db.objectStoreNames.contains(STORE_NAME)) {
+      const store = db.createObjectStore(STORE_NAME, {
+        keyPath: 'id',
         autoIncrement: true
       });
 
-      store.createIndex("by_category", "category", { unique: false });
+      store.createIndex("by_category", "category", { unique:false });
     }
   }
-});
+})
 
 export async function addNote(note) {
   const db = await dbPromise;
@@ -36,4 +36,3 @@ export async function deleteNote(id) {
   const db = await dbPromise;
   return db.delete(STORE_NAME, id);
 }
-

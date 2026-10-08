@@ -2,27 +2,31 @@ export function setCookie(name, value, days) {
   let expires = "";
 
   if(typeof days === "number") {
-    const date = new Date();
-    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-    expires = `; expires=${date.toUTCString()}`;
+    const fecha = new Date();
+    fecha.setTime(fecha.getTime() + days * 24 * 60 * 60 * 1000);
+    expires = `; expires=${fecha.toUTCString()}`;
   }
 
-  document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=/`;
-
+  document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path="/"`;
 }
 
 export function getCookie(name) {
   const cookies = document.cookie.split("; ");
-  const encontrada = cookies.find((row) => row.startsWith(`${name}=`));
+  const found = cookies.find((row) => row.startsWith(`${name}=`));
 
-  if(!encontrada) {
+  if(!found) {
     return null;
   }
 
-  const valor = encontrada.substring(name.length + 1);
-  return decodeURIComponent(valor);
+  const value = found.substring(name.length + 1);
+
+  return decodeURIComponent(value);
 }
 
 export function deleteCookie(name) {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+
 }
+
+

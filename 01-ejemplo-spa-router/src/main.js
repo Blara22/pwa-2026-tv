@@ -5,6 +5,7 @@ import ContactView from "./views/ContactView.js";
 import StorageView from "./views/StorageView.js";
 import IndexedDBView from "./views/IndexedDBView.js";
 import { registerServiceWorker } from "./pwa/registerSW.js";
+import { initConnectionStatus } from "./pwa/connectionStatus.js";
 import ServiceWorkerView from "./views/ServiceWorkerView.js";
 import FetchLabView from "./views/FetchLabView.js";
 
@@ -28,5 +29,6 @@ const app = document.getElementById("app");
 const router = new Router(routes, app);
 
 router.init();
+initConnectionStatus();
 
 window.addEventListener("load", () => registerServiceWorker());

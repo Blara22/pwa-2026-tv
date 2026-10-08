@@ -1,0 +1,7 @@
+{
+  "actualizado": "v2",
+  "novedades": [
+    { "id": 1, "titulo": "Nuevo menú de temporada de halloween" },
+    { "id": 2, "titulo": "Horario extendido en fin de semana" }
+  ]
+}

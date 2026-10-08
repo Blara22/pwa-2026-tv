@@ -44,8 +44,6 @@ async function updateList(categoryFilter) {
     ? await getNotesByCategory(categoryFilter)
     : await getNotes();
 
-  console.log(notes);
-
   container.innerHTML = renderNotes(notes);
 }
 

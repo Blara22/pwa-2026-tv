@@ -1,6 +1,7 @@
 import { BASE_PATH } from "../config.js";
 
 const DATA_URL = `${BASE_PATH}/data/productos.json`;
+const NEWS_URL = `${BASE_PATH}/data/novedades.json`;
 const API_GET_URL = "https://jsonplaceholder.typicode.com/posts/1";
 const API_POST_URL = "https://jsonplaceholder.typicode.com/posts";
 const MAX_LOG = 25;
@@ -8,6 +9,8 @@ const MAX_LOG = 25;
 const SOURCE_LABELS = {
   cache: `<span class="sw-ok">Caché (HIT)</span>`,
   network: `Red (MISS)`,
+  updated: `<span class="sw-ok">Caché actualizada en segundo plano</span>`,
+  fallback: `<span class="sw-no">Respuesta de emergencia (503)</span>`,
   ignored: `<small>Ignorada (el SW no responde)</small>`,
 };
 
@@ -15,16 +18,17 @@ const fetchLog = [];
 
 function buildLogHTML() {
   if (fetchLog.length === 0) {
-    return `<p>Sin eventos todavía. El SW aún no escucha el evento <code>fetch</code>.</p>`;
+    return `<p>Sin eventos todavía. Pulsa un botón o navega por la app.</p>`;
   }
 
   const rows = fetchLog
     .map(
-      ({ time, method, path, source }) => `
+      ({ time, method, path, strategy, source }) => `
         <tr>
           <td>${time}</td>
           <td>${method}</td>
           <td><small><code>${path}</code></small></td>
+          <td><small>${strategy ?? "—"}</small></td>
           <td>${SOURCE_LABELS[source] ?? source}</td>
         </tr>
       `
@@ -34,7 +38,7 @@ function buildLogHTML() {
   return `
     <table class="storage-table">
       <thead>
-        <tr><th>Hora</th><th>Método</th><th>Recurso</th><th>Resultado</th></tr>
+        <tr><th>Hora</th><th>Método</th><th>Recurso</th><th>Estrategia</th><th>Resultado</th></tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
@@ -147,7 +151,9 @@ document.addEventListener("click", async (event) => {
   const action = button.dataset.labAction;
 
   if (action === "get-local") {
-    await timedFetch("GET archivo propio", DATA_URL);
+    await timedFetch("GET productos.json", DATA_URL);
+  } else if (action === "get-news") {
+    await timedFetch("GET novedades.json", NEWS_URL);
   } else if (action === "get-api") {
     await timedFetch("GET API externa", API_GET_URL);
   } else if (action === "post-api") {
@@ -174,7 +180,8 @@ export default async function FetchLabView() {
       <h2>Fetch y Cache API</h2>
       <p>Cada botón hace una petición distinta. Observa qué hace el SW con cada una.</p>
       <div class="storage-actions">
-        <button type="button" data-lab-action="get-local">GET archivo propio</button>
+        <button type="button" data-lab-action="get-local">GET productos.json</button>
+        <button type="button" data-lab-action="get-news" class="btn-secundario">GET novedades.json</button>
         <button type="button" data-lab-action="get-api" class="btn-secundario">GET API externa</button>
         <button type="button" data-lab-action="post-api" class="btn-secundario">POST API externa</button>
       </div>

@@ -9,7 +9,7 @@ function openDB() {
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
 
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
+      if(!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, {
           keyPath: "id",
           autoIncrement: true

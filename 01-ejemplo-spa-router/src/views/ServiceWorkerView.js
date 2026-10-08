@@ -13,7 +13,7 @@ const SCOPE_TEST_PATHS = [
 ];
 
 async function getStatus() {
-  if(!"serviceWorker" in navigator) {
+  if (!("serviceWorker" in navigator)) {
     return { supported: false };
   }
 
@@ -33,63 +33,8 @@ async function getStatus() {
     installing: Boolean(registration?.installing),
     waiting: Boolean(registration?.waiting),
     active: Boolean(registration?.active),
-    registration
+    registration,
   };
-}
-
-const yes = (text) => `<span class="sw-ok">${text}</span>`;
-const no = (text) => `<span class="sw-no">${text}</span>`;
-
-function renderStatus(status) {
-  if (!status.supported) {
-    return `<p>${no("Este navegador no soporta Service Workers.")}</p>`;
-  }
-
-  const rows = [
-    ["¿Contexto seguro (HTTPS o localhost)?", status.secure ? yes("Sí") : no("No")],
-    ["¿SW registrado?", status.registered ? yes("Sí") : no("No")],
-    ["Scope", status.scope ? `<code>${status.scope}</code>` : "—"],
-    ["Script", status.scriptURL ? `<code>${status.scriptURL}</code>` : "—"],
-    ["Estado del worker", status.state ?? "—"],
-    [
-      "¿Controla ESTA página?",
-      status.controlled ? yes("Sí") : no("No (recarga con F5)"),
-    ],
-  ];
-
-  return `
-    <table class="storage-table">
-      <tbody>
-        ${rows.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join("")}
-      </tbody>
-    </table>
-  `;
-}
-
-function renderScopeTable(scope) {
-  const effectiveScope = scope ?? new URL(SW_SCOPE, window.location.origin).href;
-
-  const rows = SCOPE_TEST_PATHS.map(({ label, path }) => {
-    const url = new URL(path, window.location.origin).href;
-    const inside = url.startsWith(effectiveScope);
-
-    return `
-      <tr>
-        <td>${label}</td>
-        <td><code>${path}</code></td>
-        <td>${inside ? yes("Dentro") : no("Fuera")}</td>
-      </tr>
-    `;
-  }).join("");
-
-  return `
-    <table class="storage-table">
-      <thead>
-        <tr><th>Caso</th><th>Ruta</th><th>¿Dentro del scope?</th></tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
 }
 
 async function getCacheInfo() {
@@ -149,6 +94,61 @@ function renderCacheTable(caches) {
   `;
 }
 
+const yes = (text) => `<span class="sw-ok">${text}</span>`;
+const no = (text) => `<span class="sw-no">${text}</span>`;
+
+function renderStatus(status) {
+  if (!status.supported) {
+    return `<p>${no("Este navegador no soporta Service Workers.")}</p>`;
+  }
+
+  const rows = [
+    ["¿Contexto seguro (HTTPS o localhost)?", status.secure ? yes("Sí") : no("No")],
+    ["¿SW registrado?", status.registered ? yes("Sí") : no("No")],
+    ["Scope", status.scope ? `<code>${status.scope}</code>` : "—"],
+    ["Script", status.scriptURL ? `<code>${status.scriptURL}</code>` : "—"],
+    ["Estado del worker", status.state ?? "—"],
+    [
+      "¿Controla ESTA página?",
+      status.controlled ? yes("Sí") : no("No (recarga con F5)"),
+    ],
+  ];
+
+  return `
+    <table class="storage-table">
+      <tbody>
+        ${rows.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderScopeTable(scope) {
+  const effectiveScope = scope ?? new URL(SW_SCOPE, window.location.origin).href;
+
+  const rows = SCOPE_TEST_PATHS.map(({ label, path }) => {
+    const url = new URL(path, window.location.origin).href;
+    const inside = url.startsWith(effectiveScope);
+
+    return `
+      <tr>
+        <td>${label}</td>
+        <td><code>${path}</code></td>
+        <td>${inside ? yes("Dentro") : no("Fuera")}</td>
+      </tr>
+    `;
+  }).join("");
+
+  return `
+    <table class="storage-table">
+      <thead>
+        <tr><th>Caso</th><th>Ruta</th><th>¿Dentro del scope?</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
 async function updatePanels() {
   const statusBox = document.getElementById("sw-status");
   const scopeBox = document.getElementById("sw-scope-table");
@@ -196,6 +196,19 @@ async function unregisterServiceWorker() {
   await updatePanels();
 }
 
+async function checkForUpdate() {
+  const registration = await navigator.serviceWorker.getRegistration(SW_SCOPE);
+
+  if (!registration) {
+    showResult("No hay ningún SW registrado en este scope.");
+    return;
+  }
+
+  await registration.update();
+  showResult("Búsqueda terminada. Si sw.js cambió, aparecerá el aviso de nueva versión.");
+  await updatePanels();
+}
+
 document.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-sw-action]");
   if (!button || !("serviceWorker" in navigator)) return;
@@ -205,6 +218,7 @@ document.addEventListener("click", async (event) => {
   if (action === "refresh") await updatePanels();
   else if (action === "wide-scope") await tryWideScope();
   else if (action === "unregister") await unregisterServiceWorker();
+  else if (action === "check-update") await checkForUpdate();
   else if (action === "activate-update") {
     activateWaitingSW(pendingRegistration);
     document.getElementById("sw-update-banner")?.setAttribute("hidden", "");
@@ -225,6 +239,7 @@ window.addEventListener("sw-update-available", (event) => {
 
 export default async function ServiceWorkerView() {
   const status = await getStatus();
+
   const cacheInfo = await getCacheInfo();
 
   if (status.waiting && status.registration) {
@@ -234,7 +249,6 @@ export default async function ServiceWorkerView() {
   const isPending = Boolean(status.waiting || pendingRegistration);
 
   return `
-    <!-- Control reactivo del atributo hidden -->
     <div id="sw-update-banner" class="sw-update-banner" ${isPending ? "" : "hidden"}>
       <span>Hay una nueva versión de la app instalada y en espera.</span>
       <button type="button" data-sw-action="activate-update">Actualizar ahora</button>
@@ -249,15 +263,16 @@ export default async function ServiceWorkerView() {
         <button type="button" data-sw-action="check-update" class="btn-secundario">Buscar actualización</button>
         <button type="button" data-sw-action="unregister" class="btn-secundario">Dar de baja el SW</button>
       </div>
+      <p id="sw-result" class="sw-result"></p>
     </div>
 
     <div class="card">
-      <h3>Ciclo de vida (Clase 2)</h3>
+      <h3>Ciclo de vida</h3>
       <div id="sw-lifecycle-box">${renderLifecycle(status)}</div>
     </div>
 
     <div class="card">
-      <h3>Cache Storage (Clase 2)</h3>
+      <h3>Cache Storage</h3>
       <div id="sw-cache-table">${renderCacheTable(cacheInfo)}</div>
     </div>
 
@@ -266,4 +281,4 @@ export default async function ServiceWorkerView() {
       <div id="sw-scope-table">${renderScopeTable(status.scope)}</div>
     </div>
   `;
-}
+}
