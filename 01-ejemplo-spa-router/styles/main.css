@@ -190,3 +190,36 @@
 .sw-update-banner[hidden] {
   display: none !important;
 }
+
+.swatch {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  vertical-align: middle;
+}
+
+.icons-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.icon-card {
+  margin: 0;
+  text-align: center;
+}
+
+.icon-preview {
+  width: 96px;
+  height: 96px;
+  display: block;
+  margin: 0 auto 0.5rem;
+  border: 1px dashed #d1d5db;
+}
+
+/* Simula el recorte circular que aplica Android a los íconos maskable */
+.icon-preview.icon-mask {
+  border-radius: 50%;
+}

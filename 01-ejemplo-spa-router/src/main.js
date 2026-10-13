@@ -8,6 +8,7 @@ import { registerServiceWorker } from "./pwa/registerSW.js";
 import { initConnectionStatus } from "./pwa/connectionStatus.js";
 import ServiceWorkerView from "./views/ServiceWorkerView.js";
 import FetchLabView from "./views/FetchLabView.js";
+import ManifestView from "./views/ManifestView.js";
 
 // Definimos el "mapa de rutas" de la aplicación. Por ahora las tres vistas
 // se importan de forma ESTÁTICA (se descargan siempre, al inicio).
@@ -19,7 +20,7 @@ const routes = [
   { path: "/notas", view: IndexedDBView },
   { path: "/service-worker", view: ServiceWorkerView },
   { path: "/fetch-cache", view: FetchLabView },
-
+  { path: "/manifest", view: ManifestView },
 ];
 
 
