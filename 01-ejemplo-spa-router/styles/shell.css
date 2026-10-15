@@ -72,6 +72,28 @@ footer {
   background: #b91c1c;
 }
 
+.install-btn {
+  margin-left: 0.75rem;
+  padding: 0.2rem 0.8rem;
+  border: 1px solid #cadcfc;
+  border-radius: 999px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.install-btn:hover { 
+  background: #cadcfc; 
+  color: #1e2761; 
+}
+
+.install-btn[hidden] { 
+  display: none; 
+}
+
 /* ==========================================================
    SKELETON LOADER (Estructura de Carga)
    ========================================================== */

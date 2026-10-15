@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/favicon-48.png" sizes="48x48">
   <link rel="apple-touch-icon" href="icons/apple-icon-180.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="apple-touch-startup-image" href="splash/apple-splash-2064-2752.jpg"
     media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
   <link rel="apple-touch-startup-image" href="splash/apple-splash-2752-2064.jpg"
@@ -112,6 +112,7 @@
   <!-- App Shell: Header y Navegación Fijos -->
   <header>
     <h1>Demo SPA <span id="connection-status" class="connection-status">En línea</span></h1>
+    <button type="button" id="install-btn" class="install-btn" hidden>Instalar app</button>
     <nav>
       <a href="/pwa-2026-tv/01-ejemplo-spa-router" data-link>Inicio</a>
       <a href="/pwa-2026-tv/01-ejemplo-spa-router/acerca" data-link>Acerca de</a>
@@ -121,6 +122,7 @@
       <a href="/pwa-2026-tv/01-ejemplo-spa-router/service-worker" data-link>Service Worker</a>
       <a href="/pwa-2026-tv/01-ejemplo-spa-router/fetch-cache" data-link>Fetch y caché</a>
       <a href="/pwa-2026-tv/01-ejemplo-spa-router/manifest" data-link>Manifest</a>
+      <a href="/pwa-2026-tv/01-ejemplo-spa-router/instalacion" data-link>Instalación</a>
       <a href="/pwa-2026-tv/01-ejemplo-spa-router/ruta-inexistente" data-link>Ruta inválida (demo 404)</a>
     </nav>
   </header>

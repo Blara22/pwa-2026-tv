@@ -4,11 +4,14 @@ import AboutView from "./views/AboutView.js";
 import ContactView from "./views/ContactView.js";
 import StorageView from "./views/StorageView.js";
 import IndexedDBView from "./views/IndexedDBView.js";
-import { registerServiceWorker } from "./pwa/registerSW.js";
-import { initConnectionStatus } from "./pwa/connectionStatus.js";
 import ServiceWorkerView from "./views/ServiceWorkerView.js";
 import FetchLabView from "./views/FetchLabView.js";
 import ManifestView from "./views/ManifestView.js";
+import InstallView from "./views/InstallView.js";
+import { registerServiceWorker } from "./pwa/registerSW.js";
+import { initConnectionStatus } from "./pwa/connectionStatus.js";
+import { initInstallPrompt } from "./pwa/installPrompt.js";
+import { initInstallButton } from "./pwa/installButton.js";
 
 // Definimos el "mapa de rutas" de la aplicación. Por ahora las tres vistas
 // se importan de forma ESTÁTICA (se descargan siempre, al inicio).
@@ -21,6 +24,7 @@ const routes = [
   { path: "/service-worker", view: ServiceWorkerView },
   { path: "/fetch-cache", view: FetchLabView },
   { path: "/manifest", view: ManifestView },
+  { path: "/instalacion", view: InstallView }
 ];
 
 
@@ -29,7 +33,9 @@ const routes = [
 const app = document.getElementById("app");
 const router = new Router(routes, app);
 
+initInstallPrompt();
 router.init();
 initConnectionStatus();
+initInstallButton();
 
 window.addEventListener("load", () => registerServiceWorker());
