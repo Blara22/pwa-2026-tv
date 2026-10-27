@@ -254,3 +254,18 @@
 .sync-actions {
   margin-top: 1rem;
 }
+
+.geo-actions,
+.share-actions {
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.geo-actions button,
+.share-actions button {
+  min-width: 10rem;
+}
+
+#geo-result {
+  margin-top: 1rem;
+}

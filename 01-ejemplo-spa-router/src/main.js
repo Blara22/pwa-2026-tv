@@ -9,11 +9,11 @@ import FetchLabView from "./views/FetchLabView.js";
 import ManifestView from "./views/ManifestView.js";
 import InstallView from "./views/InstallView.js";
 import SyncView from "./views/SyncView.js";
+import UbicacionView from "./views/LocationView.js";
 import { registerServiceWorker } from "./pwa/registerSW.js";
 import { initConnectionStatus } from "./pwa/connectionStatus.js";
 import { initInstallPrompt } from "./pwa/installPrompt.js";
 import { initInstallButton } from "./pwa/installButton.js";
-import { initBackgroundSync } from "./pwa/backgroundSync.js";
 
 
 // Definimos el "mapa de rutas" de la aplicación. Por ahora las tres vistas
@@ -28,7 +28,8 @@ const routes = [
   { path: "/fetch-cache", view: FetchLabView },
   { path: "/manifest", view: ManifestView },
   { path: "/instalacion", view: InstallView},
-  { path: "/sincronizacion", view: SyncView }
+  { path: "/sincronizacion", view: SyncView },
+  { path: "/ubicacion", view: UbicacionView }
 ];
 
 
@@ -41,6 +42,5 @@ initInstallPrompt();
 router.init();
 initConnectionStatus();
 initInstallButton();
-initBackgroundSync();
 
 window.addEventListener("load", () => registerServiceWorker());

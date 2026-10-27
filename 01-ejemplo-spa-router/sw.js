@@ -14,18 +14,18 @@ console.log("[SW] typeof caches => ", typeof caches);
 //Scope del service worker
 console.log("[SW] Scope => ", self.registration.scope);
 
-const CACHE_VERSION = "app-shell-v6";
+const CACHE_VERSION = "app-shell-v7";
 
 const API_ORIGIN = "https://jsonplaceholder.typicode.com";
 const CDN_ORIGIN = "https://cdn.jsdelivr.net";
 const ALLOWED_ORIGINS = [self.location.origin, API_ORIGIN, CDN_ORIGIN];
 
 importScripts(`${CDN_ORIGIN}/npm/idb@8/build/umd.js`);
-
 const SYNC_TAG = "sync-outbox";
 const OUTBOX_DB = "demo_spa_db";
 const OUTBOX_STORE = "outbox";
 const OUTBOX_ENDPOINT = `${API_ORIGIN}/posts`;
+
 
 const APP_SHELL = [
   "./",
@@ -65,7 +65,10 @@ const APP_SHELL = [
   "./src/views/InstallView.js",
   "./src/views/ManifestView.js",
   "./src/views/SyncView.js",
-  "./src/pwa/backgroundSync.js"
+  "./src/pwa/backgroundSync.js",
+  "./src/pwa/geolocation.js",
+  "./src/pwa/share.js",
+  "./src/views/LocationView.js"
 ];
 
 self.addEventListener("install", (event) => {
