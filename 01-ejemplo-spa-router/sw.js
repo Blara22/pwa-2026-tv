@@ -14,11 +14,18 @@ console.log("[SW] typeof caches => ", typeof caches);
 //Scope del service worker
 console.log("[SW] Scope => ", self.registration.scope);
 
-const CACHE_VERSION = "app-shell-v5";
+const CACHE_VERSION = "app-shell-v6";
 
 const API_ORIGIN = "https://jsonplaceholder.typicode.com";
 const CDN_ORIGIN = "https://cdn.jsdelivr.net";
 const ALLOWED_ORIGINS = [self.location.origin, API_ORIGIN, CDN_ORIGIN];
+
+importScripts(`${CDN_ORIGIN}/npm/idb@8/build/umd.js`);
+
+const SYNC_TAG = "sync-outbox";
+const OUTBOX_DB = "demo_spa_db";
+const OUTBOX_STORE = "outbox";
+const OUTBOX_ENDPOINT = `${API_ORIGIN}/posts`;
 
 const APP_SHELL = [
   "./",
@@ -40,7 +47,6 @@ const APP_SHELL = [
   "./src/views/ServiceWorkerView.js",
   "./src/views/FetchLabView.js",
   "./src/views/NotFoundView.js",
-  "./src/views/ManifestView.js", 
   "./src/services/apiService.js",
   "./src/services/cookieService.js",
   "./src/services/dbService.js",
@@ -53,10 +59,13 @@ const APP_SHELL = [
   "./icons/manifest-icon-192.maskable.png",
   "./icons/manifest-icon-512.maskable.png",
   "./icons/apple-icon-180.png",
-  "./icons/favicon-48.png",
+  "./icons/favicon-32.png",
   "./src/pwa/installPrompt.js",
   "./src/pwa/installButton.js",
   "./src/views/InstallView.js",
+  "./src/views/ManifestView.js",
+  "./src/views/SyncView.js",
+  "./src/pwa/backgroundSync.js"
 ];
 
 self.addEventListener("install", (event) => {
@@ -64,7 +73,7 @@ self.addEventListener("install", (event) => {
 
   event.waitUntil(caches.open(CACHE_VERSION).then((cache) => cache.addAll(APP_SHELL)));
 
-}); 
+});
 
 self.addEventListener("activate", (event) => {
   console.log("[SW] activate => versión activa", CACHE_VERSION);
@@ -88,10 +97,10 @@ self.addEventListener("message", (event) => {
 });
 
 function shouldHandle(request) {
-  if(request.method !== "GET")
+  if(request.method !== "GET") 
     return false;
 
-  if (!ALLOWED_ORIGINS.includes(new URL(request.url).origin))
+  if(!ALLOWED_ORIGINS.includes(new URL(request.url).origin))
     return false;
 
   if(request.cache === "only-if-cached" && request.mode !== "same-origin")
@@ -118,15 +127,14 @@ async function handleRequest(event) {
 
   const strategy = pickStrategy(request);
   return strategy(event, cache, key);
-
 }
 
 function pickStrategy(request) {
-
   const url = new URL(request.url);
 
   if (url.origin === API_ORIGIN) return networkFirst;
   if (url.pathname.endsWith("/data/productos.json")) return networkFirst;
+
   if (url.pathname.endsWith("/data/novedades.json")) return staleWhileRevalidate;
 
   return cacheFirst;
@@ -238,5 +246,46 @@ function reportFetch(request, source, strategy) {
     clients.forEach((client) =>
       client.postMessage({ type: "FETCH_LOG", method: request.method, path, strategy, source })
     );
+  });
+}
+
+self.addEventListener("sync", (event) => {
+  if (event.tag !== SYNC_TAG) return;
+
+  // lastChance = true: si este intento falla, el navegador ya no reintentará.
+  console.log("[SW] sync =>", event.tag, "· lastChance:", event.lastChance);
+  event.waitUntil(flushOutbox());
+});
+
+async function flushOutbox() {
+  const db = await idb.openDB(OUTBOX_DB);
+
+  try {
+    const pending = await db.getAll(OUTBOX_STORE);
+    console.log("[SW] Cola de salida =>", pending.length, "pendiente(s)");
+
+    for (const item of pending) {
+      const response = await fetch(OUTBOX_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item.payload),
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      await db.delete(OUTBOX_STORE, item.id);
+      console.log("[SW] Enviado y borrado de la cola =>", item.payload.title);
+
+      notifyClients({ type: "OUTBOX_SENT", title: item.payload.title, serverId: data.id });
+    }
+  } finally {
+    db.close();
+  }
+}
+
+function notifyClients(message) {
+  self.clients.matchAll({ type: "window" }).then((clients) => {
+    clients.forEach((client) => client.postMessage(message));
   });
 }

@@ -1,7 +1,7 @@
 {
-  "actualizado": "v2",
+  "actualizado": "v3",
   "novedades": [
-    { "id": 1, "titulo": "Nuevo menú de temporada de halloween" },
+    { "id": 1, "titulo": "Nuevo menú de temporada de navidad" },
     { "id": 2, "titulo": "Horario extendido en fin de semana" }
   ]
 }

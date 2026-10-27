@@ -223,3 +223,34 @@
 .icon-preview.icon-mask {
   border-radius: 50%;
 }
+
+.install-actions { 
+  margin-top: 1rem; 
+}
+
+.storage-actions button:disabled { 
+  opacity: 0.5; 
+  cursor: not-allowed; 
+}
+
+/* SYNC */
+
+#sync-title,
+#sync-body {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+#sync-body {
+  resize: vertical;
+}
+
+.sync-actions {
+  margin-top: 1rem;
+}

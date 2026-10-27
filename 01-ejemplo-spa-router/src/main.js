@@ -8,10 +8,13 @@ import ServiceWorkerView from "./views/ServiceWorkerView.js";
 import FetchLabView from "./views/FetchLabView.js";
 import ManifestView from "./views/ManifestView.js";
 import InstallView from "./views/InstallView.js";
+import SyncView from "./views/SyncView.js";
 import { registerServiceWorker } from "./pwa/registerSW.js";
 import { initConnectionStatus } from "./pwa/connectionStatus.js";
 import { initInstallPrompt } from "./pwa/installPrompt.js";
 import { initInstallButton } from "./pwa/installButton.js";
+import { initBackgroundSync } from "./pwa/backgroundSync.js";
+
 
 // Definimos el "mapa de rutas" de la aplicación. Por ahora las tres vistas
 // se importan de forma ESTÁTICA (se descargan siempre, al inicio).
@@ -24,7 +27,8 @@ const routes = [
   { path: "/service-worker", view: ServiceWorkerView },
   { path: "/fetch-cache", view: FetchLabView },
   { path: "/manifest", view: ManifestView },
-  { path: "/instalacion", view: InstallView }
+  { path: "/instalacion", view: InstallView},
+  { path: "/sincronizacion", view: SyncView }
 ];
 
 
@@ -37,5 +41,6 @@ initInstallPrompt();
 router.init();
 initConnectionStatus();
 initInstallButton();
+initBackgroundSync();
 
 window.addEventListener("load", () => registerServiceWorker());

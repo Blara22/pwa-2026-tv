@@ -1,8 +1,10 @@
 import { openDB } from "https://cdn.jsdelivr.net/npm/idb@8/+esm";
 
 const DB_NAME = "demo_spa_db";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = "notes";
+
+const OUTBOX_STORE = "outbox";
 
 const dbPromise = openDB(DB_NAME, DB_VERSION, {
   upgrade(db) {
@@ -13,6 +15,13 @@ const dbPromise = openDB(DB_NAME, DB_VERSION, {
       });
 
       store.createIndex("by_category", "category", { unique:false });
+    }
+
+    if (!db.objectStoreNames.contains(OUTBOX_STORE)) {
+      db.createObjectStore(OUTBOX_STORE, {
+        keyPath: 'id',
+        autoIncrement: true
+      });
     }
   }
 })
@@ -35,4 +44,19 @@ export async function getNotesByCategory(category) {
 export async function deleteNote(id) {
   const db = await dbPromise;
   return db.delete(STORE_NAME, id);
+}
+
+export async function addToOutbox(item) {
+  const db = await dbPromise;
+  return db.add(OUTBOX_STORE, item);
+}
+
+export async function getOutbox() {
+  const db = await dbPromise;
+  return db.getAll(OUTBOX_STORE);
+}
+
+export async function removeFromOutbox(id) {
+  const db = await dbPromise;
+  return db.delete(OUTBOX_STORE, id);
 }
