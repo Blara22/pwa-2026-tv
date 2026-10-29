@@ -14,7 +14,7 @@ console.log("[SW] typeof caches => ", typeof caches);
 //Scope del service worker
 console.log("[SW] Scope => ", self.registration.scope);
 
-const CACHE_VERSION = "app-shell-v7";
+const CACHE_VERSION = "app-shell-v8";
 
 const API_ORIGIN = "https://jsonplaceholder.typicode.com";
 const CDN_ORIGIN = "https://cdn.jsdelivr.net";
@@ -26,6 +26,7 @@ const OUTBOX_DB = "demo_spa_db";
 const OUTBOX_STORE = "outbox";
 const OUTBOX_ENDPOINT = `${API_ORIGIN}/posts`;
 
+const NOTIFICATION_ICON = new URL("./icons/manifest-icon-192.maskable.png", self.registration.scope).href;
 
 const APP_SHELL = [
   "./",
@@ -68,7 +69,9 @@ const APP_SHELL = [
   "./src/pwa/backgroundSync.js",
   "./src/pwa/geolocation.js",
   "./src/pwa/share.js",
-  "./src/views/LocationView.js"
+  "./src/views/LocationView.js",
+  "./src/pwa/notifications.js",
+  "./src/pwa/notificationButton.js"
 ];
 
 self.addEventListener("install", (event) => {
@@ -262,6 +265,7 @@ self.addEventListener("sync", (event) => {
 
 async function flushOutbox() {
   const db = await idb.openDB(OUTBOX_DB);
+  const sentTitles = [];
 
   try {
     const pending = await db.getAll(OUTBOX_STORE);
@@ -281,9 +285,33 @@ async function flushOutbox() {
       console.log("[SW] Enviado y borrado de la cola =>", item.payload.title);
 
       notifyClients({ type: "OUTBOX_SENT", title: item.payload.title, serverId: data.id });
+      sentTitles.push(item.payload.title);
     }
   } finally {
     db.close();
+    await showSyncNotification(sentTitles);
+  }
+}
+
+async function showSyncNotification(titles) {
+  if (titles.length === 0 || Notification.permission !== "granted") return;
+
+  const body =
+    titles.length === 1
+      ? `«${titles[0]}» ya llegó al servidor.`
+      : `${titles.length} mensajes ya llegaron al servidor.`;
+
+  try {
+    await self.registration.showNotification("Mensajes enviados", {
+      body,
+      icon: NOTIFICATION_ICON,
+      tag: "outbox-sent",
+      data: { url: "sincronizacion" },
+    });
+
+    console.log("Se mostró notificación de sincronización");
+  } catch (error) {
+    console.warn("[SW] No se pudo mostrar la notificación: ", error);
   }
 }
 
@@ -291,4 +319,28 @@ function notifyClients(message) {
   self.clients.matchAll({ type: "window" }).then((clients) => {
     clients.forEach((client) => client.postMessage(message));
   });
+}
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const target = new URL(event.notification.data?.url ?? "./", self.registration.scope).href;
+
+  event.waitUntil(openOrFocus(target));
+});
+
+async function openOrFocus(target) {
+  const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  const existing = windows.find((client) => client.url.startsWith(self.registration.scope));
+
+  if (existing) {
+    await existing.focus();
+
+    if (existing.url !== target) {
+      await existing.navigate(target).catch(() => self.clients.openWindow(target));
+    }
+    return;
+  }
+
+  return self.clients.openWindow(target);
 }

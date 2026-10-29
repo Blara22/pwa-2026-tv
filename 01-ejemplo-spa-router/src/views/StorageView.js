@@ -22,7 +22,6 @@ function updateScreenValues() {
 
 document.addEventListener("click", (event) =>  {
   const boton = event.target.closest("[data-storage-action");
-  console.log(boton);
   if(!boton) return;
 
   const action = boton.dataset.storageAction; // "save" | "delete"
