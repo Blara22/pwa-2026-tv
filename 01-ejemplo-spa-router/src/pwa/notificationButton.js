@@ -1,26 +1,35 @@
-import { supportsNotifications, getPermission, enableNotifications } from "./notifications.js";
+import {
+  supportsPush,
+  getPermission,
+  getSubscription,
+  enableNotifications,
+  unsubscribeFromPush,
+  syncSubscription,
+} from "./notifications.js";
 
 const button = () => document.getElementById("notify-btn");
 
-function paint() {
+async function paint() {
   const el = button();
   if (!el) return;
 
-  if (!supportsNotifications()) {
+  if (!supportsPush()) {
     el.hidden = true;
     return;
   }
 
   const permission = getPermission();
-  const labels = {
-    default: "Activar notificaciones",
-    granted: "Notificaciones activas",
-    denied: "Notificaciones bloqueadas",
-  };
+  const subscribed = permission === "granted" && Boolean(await getSubscription());
 
   el.hidden = false;
-  el.disabled = permission !== "default";
-  el.textContent = labels[permission];
+  el.disabled = permission === "denied";
+  el.title = permission === "denied" ? "Bloqueadas: cámbialo en la configuración del sitio" : "";
+  el.textContent =
+    permission === "denied"
+      ? "Notificaciones bloqueadas"
+      : subscribed
+        ? "Desactivar notificaciones"
+        : "Activar notificaciones";
 }
 
 async function watchPermission() {
@@ -36,8 +45,22 @@ export function initNotificationButton() {
   paint();
   watchPermission();
 
+  syncSubscription().catch((error) => console.warn("[PWA] No se pudo sincronizar la suscripción: ", error));
+
   button()?.addEventListener("click", async () => {
-    await enableNotifications();
-    paint();
+    const el = button();
+    el.disabled = true;
+
+    try {
+      if (getPermission() === "granted" && (await getSubscription())) {
+        await unsubscribeFromPush();
+      } else {
+        await enableNotifications();
+      }
+    } catch (error) {
+      console.error("[PWA] No se pudo cambiar el estado de las notificaciones: ", error);
+    }
+
+    await paint();
   });
 }

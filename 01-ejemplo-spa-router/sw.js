@@ -109,6 +109,10 @@ function shouldHandle(request) {
   if(!ALLOWED_ORIGINS.includes(new URL(request.url).origin))
     return false;
 
+  const { origin, pathname } = new URL(request.url);
+  if(origin === self.location.origin && pathname.includes("/api/"))
+    return false;
+
   if(request.cache === "only-if-cached" && request.mode !== "same-origin")
     return false;
 
@@ -343,4 +347,29 @@ async function openOrFocus(target) {
   }
 
   return self.clients.openWindow(target);
+}
+
+self.addEventListener("push", (event) => {
+  const message = readPushMessage(event);
+  console.log("[SW] push recibido =>", message);
+
+  event.waitUntil(
+    self.registration.showNotification(message.title, {
+      body: message.body,
+      icon: NOTIFICATION_ICON,
+      tag: message.tag,
+      data: { url: message.url },
+    })
+  );
+});
+
+function readPushMessage(event) {
+  const fallback = { title: "Demo SPA", body: "Tienes una novedad en la app.", url: "./" };
+  if (!event.data) return fallback;
+
+  try {
+    return { ...fallback, ...event.data.json() };
+  } catch (error) {
+    return { ...fallback, body: event.data.text() };
+  }
 }

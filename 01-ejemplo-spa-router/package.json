@@ -1,5 +1,10 @@
 {
   "dependencies": {
-    "pwa-asset-generator": "^8.1.7"
+    "pwa-asset-generator": "^8.1.7",
+    "web-push": "^4.0.0"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "push": "node send-push.mjs"
   }
 }
