@@ -1,5 +1,6 @@
 import { BASE_URL } from "../services/apiService.js";
 import { addToOutbox, getOutbox, removeFromOutbox } from "../services/dbService.js";
+import { setBadge } from "./badge.js";
 
 export const SYNC_TAG = "sync-outbox";
 const ENDPOINT = `${BASE_URL}/posts`;
@@ -30,6 +31,15 @@ function logSent(title, via, serverId) {
 
 function notifyChange() {
   window.dispatchEvent(new CustomEvent("outbox-changed"));
+  syncBadge();
+}
+
+async function syncBadge() {
+  try {
+    await setBadge((await getOutbox()).length);
+  } catch (error) {
+    console.warn("[PWA] No se pudo sincronizar la insignia: ", error);
+  }
 }
 
 export async function queueMessage(payload) {
@@ -84,6 +94,7 @@ export async function retryNow() {
 
 export function initBackgroundSync() {
 
+  syncBadge();
   navigator.serviceWorker?.addEventListener("message", (event) => {
     const { type, title, serverId } = event.data ?? {};
     if (type === "OUTBOX_SENT") {

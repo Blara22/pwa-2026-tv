@@ -40,6 +40,8 @@ export default class Router {
     const fullPath = window.location.pathname;
     const path = fullPath.replace(BASE_PATH, "") || "/";
 
+    window.dispatchEvent(new CustomEvent("route-changed", { detail: { path } }));
+
     // 1. Inyectamos de inmediato el Skeleton en el Shell antes de resolver la vista
     this.root.innerHTML = this.getSkeletonHTML();
 

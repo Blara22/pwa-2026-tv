@@ -1,6 +1,7 @@
 import { queueMessage } from "../pwa/backgroundSync.js";
 import { getOutbox } from "../services/dbService.js";
 import { retryNow, supportsBackgroundSync, getSentLog } from "../pwa/backgroundSync.js";
+import { supportsBadge } from "../pwa/badge.js";
 
 function showStatus(message) {
   const output = document.getElementById("sync-status");
@@ -32,6 +33,12 @@ function renderSupport() {
   return supportsBackgroundSync()
     ? `<span class="sw-ok">✔ Este navegador soporta Background Sync.</span> El Service Worker enviará la cola cuando regrese la conexión, incluso con la pestaña cerrada.`
     : `<span class="sw-no">✘ Background Sync no está disponible aquí</span> (Safari/iOS, Firefox o modo <code>?sin-sync</code>). Plan B: la página reintenta al volver la conexión y con el botón.`;
+}
+
+function renderBadgeSupport() {
+  return supportsBadge()
+    ? `<span class="sw-ok">✔ Este navegador soporta la Badging API.</span> El número en el ícono de la app instalada muestra cuántos mensajes siguen en la cola.`
+    : `<span class="sw-no">✘ La Badging API no está disponible aquí.</span> La cola funciona igual; solo no se muestra el número en el ícono.`;
 }
 
 function renderSent() {
@@ -114,6 +121,7 @@ export default async function SyncView() {
       <p>Escribe un mensaje y envíalo. Si no hay conexión, se guarda en una cola
       (IndexedDB) y se envía cuando regrese internet.</p>
       <p id="sync-support">${renderSupport()}</p>
+      <p id="sync-badge">${renderBadgeSupport()}</p>
     </div>
 
     <div class="card">

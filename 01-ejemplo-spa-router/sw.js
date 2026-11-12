@@ -292,8 +292,22 @@ async function flushOutbox() {
       sentTitles.push(item.payload.title);
     }
   } finally {
+    const remaining = await db.count(OUTBOX_STORE).catch(() => null);
     db.close();
+
+    if (remaining !== null) await updateBadge(remaining);
     await showSyncNotification(sentTitles);
+  }
+}
+
+async function updateBadge(count) {
+  if (!("setAppBadge" in self.navigator)) return;
+
+  try {
+    if (count > 0) await self.navigator.setAppBadge(count);
+    else await self.navigator.clearAppBadge();
+  } catch (error) {
+    console.warn("[SW] No se pudo actualizar la insignia: ", error);
   }
 }
 

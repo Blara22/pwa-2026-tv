@@ -269,3 +269,26 @@
 #geo-result {
   margin-top: 1rem;
 }
+
+.wake-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.permission-ask {
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+}
+
+.permission-ask p {
+  margin-top: 0;
+}
+
+.permission-ask[hidden] {
+  display: none !important;
+}

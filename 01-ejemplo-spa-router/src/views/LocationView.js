@@ -11,6 +11,7 @@ import {
 } from '../pwa/geolocation.js';
 import { supportsShare, shareContent } from "../pwa/share.js";
 import { BASE_PATH } from "../config.js";
+import { supportsWakeLock, requestWakeLock, releaseWakeLock } from "../pwa/wakeLock.js";
 
 const esc = (value) =>
   String(value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -77,6 +78,7 @@ function renderPermission(state) {
 
 //Tracking: Seguimiento continuo
 let updates = 0;
+let tracking = false;
 
 function startTracking() {
   if (!supportsGeolocation()) {
@@ -108,11 +110,17 @@ function startTracking() {
       if (error.code === 1) stopTracking();
     }
   );
+
+  tracking = true;
+  applyWakeLock();
 }
 
 function stopTracking() {
   stopWatch();
   setText("geo-watch-status", "Seguimiento detenido.");
+
+  tracking = false;
+  releaseWakeLock();
 }
 
 document.addEventListener("click", async (event) => {
@@ -125,6 +133,43 @@ document.addEventListener("click", async (event) => {
   if (action === "watch-stop") stopTracking();
 });
 
+
+function renderWakeSupport() {
+  return supportsWakeLock()
+    ? `<span class="sw-ok">✔ Este navegador permite mantener la pantalla encendida.</span>`
+    : `<span class="sw-no">✘ <code>navigator.wakeLock</code> no está disponible aquí.</span> El seguimiento funciona igual, pero la pantalla puede apagarse.`;
+}
+
+async function applyWakeLock() {
+  const wanted = document.getElementById("wake-toggle")?.checked;
+  if (!tracking || !wanted) return;
+
+  const active = await requestWakeLock();
+  if (!active) {
+    setText("wake-status", "No se pudo mantener la pantalla encendida (¿modo de ahorro de batería?).");
+  }
+}
+
+window.addEventListener("wakelock-changed", (event) => {
+  setText(
+    "wake-status",
+    event.detail.active
+      ? "Pantalla encendida mientras dure el seguimiento."
+      : "La pantalla vuelve a apagarse con normalidad."
+  );
+  console.log("changed");
+});
+
+document.addEventListener("change", async (event) => {
+  if (!event.target.matches("#wake-toggle") || !tracking) return;
+
+  if (event.target.checked) await applyWakeLock();
+  else await releaseWakeLock();
+});
+
+window.addEventListener("route-changed", (event) => {
+  if (tracking && event.detail.path !== "/ubicacion") stopTracking();
+});
 
 //Web Share
 const SHARE_MESSAGES = {
@@ -190,6 +235,13 @@ export default async function UbicacionView() {
     <div class="card">
       <h3>Geolocation API</h3>
       <p>Permiso de ubicación: <span id="geo-permission">${renderPermission(permission)}</span></p>
+      <label class="wake-option">
+        <input type="checkbox" id="wake-toggle" ${supportsWakeLock() ? "" : "disabled"}>
+        Mantener la pantalla encendida durante el seguimiento
+      </label>
+      <p id="wake-support">${renderWakeSupport()}</p>
+      <p id="wake-status" class="sw-result"></p>
+
       <div class="storage-actions geo-actions">
         <button type="button" data-geo-action="locate">Obtener mi ubicación</button>
         <button type="button" data-geo-action="watch-start" class="btn-secundario">Iniciar seguimiento</button>
