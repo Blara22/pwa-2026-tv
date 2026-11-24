@@ -10,7 +10,13 @@
     <link rel="stylesheet" href="styles/shell.css">
 
     <!-- Estilos del contenido dinámico -->
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/shell.css">
+    
+    <link rel="stylesheet" href="styles/main.css" media="print" onload="this.media='all'">
+    <noscript>
+      <link rel="stylesheet" href="styles/main.css">
+    </noscript>
+    <link rel="preload" as="image" href="assets/hero.jpg" fetchpriority="high">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="./icons/favicon-32.png">
     <link rel="apple-touch-icon" href="icons/apple-icon-180.png">

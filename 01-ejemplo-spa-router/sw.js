@@ -14,7 +14,7 @@ console.log("[SW] typeof caches => ", typeof caches);
 //Scope del service worker
 console.log("[SW] Scope => ", self.registration.scope);
 
-const CACHE_VERSION = "app-shell-v8";
+const CACHE_VERSION = "app-shell-v10";
 
 const API_ORIGIN = "https://jsonplaceholder.typicode.com";
 const CDN_ORIGIN = "https://cdn.jsdelivr.net";
@@ -38,6 +38,8 @@ const APP_SHELL = [
   "./src/config.js",
   "./src/router/router.js",
   "./src/components/NavBar.js",
+  "./src/components/NovedadesList.js",
+  "./src/components/lazyComponents.js",
   "./src/pwa/registerSW.js",
   "./src/pwa/connectionStatus.js",
   "./src/views/HomeView.js",
@@ -71,7 +73,8 @@ const APP_SHELL = [
   "./src/pwa/share.js",
   "./src/views/LocationView.js",
   "./src/pwa/notifications.js",
-  "./src/pwa/notificationButton.js"
+  "./src/pwa/notificationButton.js",
+  "./assets/hero.jpg",
 ];
 
 self.addEventListener("install", (event) => {
@@ -268,8 +271,8 @@ self.addEventListener("sync", (event) => {
 });
 
 async function flushOutbox() {
-  const db = await idb.openDB(OUTBOX_DB);
   const sentTitles = [];
+  const db = await idb.openDB(OUTBOX_DB);
 
   try {
     const pending = await db.getAll(OUTBOX_STORE);
@@ -289,25 +292,12 @@ async function flushOutbox() {
       console.log("[SW] Enviado y borrado de la cola =>", item.payload.title);
 
       notifyClients({ type: "OUTBOX_SENT", title: item.payload.title, serverId: data.id });
+
       sentTitles.push(item.payload.title);
     }
   } finally {
-    const remaining = await db.count(OUTBOX_STORE).catch(() => null);
     db.close();
-
-    if (remaining !== null) await updateBadge(remaining);
     await showSyncNotification(sentTitles);
-  }
-}
-
-async function updateBadge(count) {
-  if (!("setAppBadge" in self.navigator)) return;
-
-  try {
-    if (count > 0) await self.navigator.setAppBadge(count);
-    else await self.navigator.clearAppBadge();
-  } catch (error) {
-    console.warn("[SW] No se pudo actualizar la insignia: ", error);
   }
 }
 
@@ -326,10 +316,8 @@ async function showSyncNotification(titles) {
       tag: "outbox-sent",
       data: { url: "sincronizacion" },
     });
-
-    console.log("Se mostró notificación de sincronización");
   } catch (error) {
-    console.warn("[SW] No se pudo mostrar la notificación: ", error);
+    console.warn("[SW] No se pudo mostrar la notificación: ", error); 
   }
 }
 
